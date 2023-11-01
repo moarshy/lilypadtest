@@ -1,0 +1,80 @@
+docker buildx build --platform linux/amd64 -t marshath/sdxl-finetune .
+
+docker.io/marshath/sdxl-finetune
+
+bacalhau docker run \
+ --gpu 1 \
+ --timeout 3600 \
+ --wait-timeout-secs 3600 \
+  -i ipfs://QmaTtG4tZpQSaTEek4h2Ynm6nPUipTh27v3PH4gN9j3zCt \
+  docker.io/marshath/sdxl-finetune \
+  -- bash /app/train.sh "a photo of sks dog"
+
+bacalhau docker run \
+ --gpu 1 \
+ --timeout 3600 \
+ --wait-timeout-secs 3600 \
+ -i ipfs://QmdZZgDnArmFw5nEbw9VssnURFz58TDCkMKEVEDcW5dD7F \
+ docker.io/marshath/sdxl-finetune:v1.0 \
+ -- /bin/bash -c "ls /app && bash /app/train.sh /input /output 'a photo of sks dog' 300"
+
+ bacalhau docker run \
+  --gpu 1 \
+  docker.io/marshath/sdxl-inference:v1.0 \
+  -- python3 inference.py --prompt "a photo of a dog"
+
+
+bacalhau docker run \
+ --gpu 1 \
+ --timeout 3600 \
+ --wait-timeout-secs 3600 \
+ -i ipfs://QmdZZgDnArmFw5nEbw9VssnURFz58TDCkMKEVEDcW5dD7F \
+ docker.io/marshath/sdxl-finetune:v1.0 \
+ -- /bin/bash -c "ls /inputs && \
+    START_TIME=\$(date +%s) && \
+    INPUT=/inputs && \
+    OUTPUT=/outputs && \
+    PROMPT='a photo of a sks dog' && \
+    STEPS=250 && \
+    mkdir -p ~/.cache/huggingface/accelerate && \
+    cp /app/default_config.yaml ~/.cache/huggingface/accelerate/default_config.yaml && \
+    cd /app/diffusers/examples/dreambooth && \
+    if [[ -z \\\"$PROMPT\\\" ]]; then echo \\\"PROMPT is not set. Exiting.\\\" && exit 1; fi && \
+    accelerate launch train_dreambooth_lora_sdxl.py \
+      --pretrained_model_name_or_path=/app/models/ \
+      --instance_data_dir=\\\"$INPUT\\\" \
+      --output_dir=\\\"$OUTPUT\\\" \
+      --mixed_precision=\\\"fp16\\\" \
+      --instance_prompt=\\\"$PROMPT\\\" \
+      --resolution=1024 \
+      --gradient_checkpointing \
+      --train_batch_size=1 \
+      --gradient_accumulation_steps=4 \
+      --learning_rate=1e-4 \
+      --lr_scheduler=\\\"constant\\\" \
+      --lr_warmup_steps=0 \
+      --max_train_steps=$STEPS \
+      --seed=0 \
+      --checkpointing_steps=717 \
+      --use_8bit_adam && \
+    END_TIME=\$(date +%s) && \
+    ELAPSED_TIME=\$((END_TIME - START_TIME)) && \
+    echo \\\"Time elapsed since start of script: \$ELAPSED_TIME seconds\\\""
+
+lilypad run github.com/AlgoveraAI/lilypad-module-sdxl-finetune:v0.0.1 -i ImagesCID=QmdZZgDnArmFw5nEbw9VssnURFz58TDCkMKEVEDcW5dD7F
+
+# docker buildx build --platform linux/amd64 --push -t marshath/lilypad-test:sh_v1.0 .
+
+### Successful run - python
+bacalhau docker run \
+  docker.io/marshath/lilypad-test:v0.0.6 \
+  -- python /app/test.py --x 3 --y 4
+
+### Successful run - sh
+bacalhau docker run \
+  docker.io/marshath/lilypad-test:sh_v1.0 \
+  -- sh /app/test.sh 3 4 5
+
+bacalhau docker run \
+  docker.io/marshath/lilypad-test:sh_v1.0 \
+  -- bash /app/test.sh 3 4 5
