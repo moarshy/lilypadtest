@@ -78,3 +78,6 @@ bacalhau docker run \
 bacalhau docker run \
   docker.io/marshath/lilypad-test:sh_v1.0 \
   -- bash /app/test.sh 3 4 5
+
+lilypad run github.com/moarshy/lilypadtest:try_again \
+  -i X=3 -i Y=3
