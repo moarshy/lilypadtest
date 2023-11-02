@@ -19,7 +19,7 @@
           "--y",
           {{.Y}}
         ],
-        "Image": "docker.io/marshath/lilypad-test:arm_v0.1",
+        "Image": "docker.io/marshath/lilypad-test:arm_v0.1"
       },
       "Engine": "Docker",
       "Network": {
@@ -32,14 +32,7 @@
         "GPU": ""
       },
       "Timeout": 1800,
-      "Verifier": "Noop",
-      "outputs": [
-      {
-          "Name": "output",
-          "StorageSource": "IPFS",
-          "path": "/output"
-      }
-      ]
+      "Verifier": "Noop"
     }
   }
 }
